@@ -27,7 +27,7 @@ app.use compression()
 
 getSlogans = ->
 
-  knex.select 'slogan', 'user', 'created_at'
+  knex.select 'id', 'slogan', 'user', 'created_at'
   .from 'slogans'
   .orderBy 'created_at', 'desc'
 
@@ -43,6 +43,11 @@ app.use (req, res, next) ->
   next()
 
 
+# set up views
+
+app.set 'view engine', 'jade'
+
+
 # index (past slogans)
 
 app.get '/', (req, res) ->
@@ -54,7 +59,8 @@ app.get '/', (req, res) ->
 
   sloganQuery.limit 40
   .then (returnedSlogans) ->
-    res.json
+    res.render 'index',
+      title: 'Sloganator History'
       slogans: returnedSlogans
 
 
@@ -67,6 +73,7 @@ app.get '/current', (req, res) ->
   .then (returnedSlogans) ->
     res.json
       slogan: returnedSlogans[0]
+
 
 # create slogan
 

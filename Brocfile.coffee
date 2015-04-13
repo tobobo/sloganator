@@ -24,17 +24,24 @@ client = funnel 'client',
 
 client = filterCoffeescript client
 
-client = browserify client,
+sloganator = browserify client,
   entries: ['./index']
   outputFile: './client.js'
 
-merged = mergeTrees [client, vendor]
+history = browserify client,
+  entries: ['./history']
+  outputFile: './history.js'
 
-merged = concat merged,
+sloganator = mergeTrees [sloganator, vendor]
+
+sloganator = concat sloganator,
   inputFiles: ['nanoajax.min.js', 'domtastic.min.js', 'client.js']
   outputFile: '/sloganator.js'
 
+merged = mergeTrees [sloganator, history]
+
 if process.env.NODE_ENV == 'production'
-  merged = uglifyJS merged
+  merged = uglifyJS merged,
+    mangle: true
 
 module.exports = merged

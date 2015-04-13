@@ -2,9 +2,12 @@ utils = require './utils'
 
 sloganator =
 
-  sloganatorScript: $ '#sloganator'
-  sloganatorContainer: $ '<div class="sloganator-container"></div>'
-  slogan: $ '<p class="slogan"></p>'
+  baseURL: ''
+
+  sloganScript: $ '#sloganator'
+  sloganContainer: $ '<div class="sloganator-container"></div>'
+  slogan: $ '<span class="slogan"></p>'
+  historyLink: $ '<a href="/" target="_blank"> slogan history</a>'
   sloganInput: $ '<input class="slogan-input">'
 
 
@@ -13,39 +16,41 @@ sloganator =
     @bindEvents()
 
 
-  getSlogan: (cb) ->
-    cb 200, JSON.stringify
-      slogan:
-        slogan: 'example slog'
-        user: 'roo'
-        created_at: new Date(Date.now() - 1000*60*60*24)
+  fetchSlogan: (cb) ->
+    nanoajax.ajax @baseURL + '/current', cb
+
+
+  getInputValue: ->
+    @sloganInput.val()
 
 
   postSlogan: (cb) ->
-    cb 200, JSON.stringify
-      slogan:
-        slogan: @sloganInput.val()
-        user: 'roo'
-        created_at: new Date(Date.now() - 1000*60*60*24)
+    nanoajax.ajax
+      url: @baseURL + '/'
+      method: 'POST'
+      body: "slogan[slogan]=#{@getInputValue()}&slogan[user]=roo"
+    , cb
 
 
   insertElements: ->
     utils.hide @sloganInput
+    utils.hide @historyLink
 
-    @sloganatorContainer
+    @sloganContainer
     .append @slogan
     .append @sloganInput
+    .append @historyLink
 
-    @sloganatorScript.after @sloganatorContainer
+    @sloganScript.after @sloganContainer
 
-    @getSlogan (statusCode, responseJSON) =>
+    @fetchSlogan (statusCode, responseJSON) =>
       response = utils.tryParse responseJSON
       @updateSlogan response.slogan
 
 
   saveSlogan: (cb) ->
-    slogan = @sloganInput.val()
-    if slogan?.length < 5 then return
+    slogan = @getInputValue()
+    if !slogan or slogan.length < 5 then return
     @slogan.html slogan
     @showSlogan()
     @postSlogan (status, responseJSON) =>
@@ -86,6 +91,12 @@ sloganator =
 
     @sloganInput.on 'focus', =>
       @sloganInput[0].select()
+
+    @sloganContainer.on 'mouseover', =>
+      utils.show @historyLink
+
+    @sloganContainer.on 'mouseout', =>
+      utils.hide @historyLink
 
 
 sloganator.init()

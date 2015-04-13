@@ -1,0 +1,19 @@
+doctype
+html
+  
+  head
+    title!= title
+    
+  body
+    ul.slogans
+      each slogan in slogans
+        li.slogan(data-slogan-id=slogan.id)
+          span #{slogan.slogan} -
+          strong  #{slogan.user}
+          span  at
+          span  #{slogan.created_at}
+          
+    button.load-earlier(disabled) load earlier slogans
+          
+    script(type='text/javascript' src='/sloganator.js')
+    script(type='text/javascript' src='/history.js')
