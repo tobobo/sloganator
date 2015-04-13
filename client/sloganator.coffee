@@ -3,6 +3,7 @@ utils = require './utils'
 sloganator =
 
   baseURL: ''
+  minSloganLength: 10
 
   document: $(document)
   script: $ '#sloganator'
@@ -71,7 +72,7 @@ sloganator =
       if statusCode != 200
         response = utils.tryParse responseJson
         alert(response?.error or 'unknown error')
-      cb statusCode, text
+      cb statusCode, responseJson
 
 
   getInputValue: ->
@@ -84,8 +85,10 @@ sloganator =
 
   saveSlogan: (cb) ->
     sloganData = @getSloganData()
-    if !sloganData.slogan or !sloganData.user or sloganData.slogan.length < 5
-      return
+    if !sloganData.user
+      return alert 'no user, no slogan'
+    if !sloganData.slogan or sloganData.slogan.length < @minSloganLength
+      return alert 'ur slogan is 2 short'
     @slogan.html sloganData.slogan
     @showSlogan()
     @postSlogan @getSloganData(), (status, responseJSON) =>

@@ -24,13 +24,17 @@ app.use bodyParser.json()
 app.use compression()
 
 
-# helper for getting slogans from db
+# helpers for db
 
-fetchSlogans = ->
-
+app.set 'fetchSlogans', ->
   knex.select 'id', 'slogan', 'user', 'created_at'
   .from 'slogans'
   .orderBy 'created_at', 'desc'
+
+
+app.set 'insertSlogan', (newSlogan) ->
+  newSlogan.created_at = knex.raw('current_timestamp')
+  knex.insert(newSlogan).into('slogans')
 
 
 # helper for sending errors
@@ -47,6 +51,7 @@ app.use (req, res, next) ->
 # set up views
 
 app.set 'view engine', 'jade'
+app.locals.pretty = true
 
 
 # index (past slogans)
@@ -54,7 +59,7 @@ app.set 'view engine', 'jade'
 app.get '/', (req, res) ->
 
   before = req.query.before
-  sloganQuery = fetchSlogans()
+  sloganQuery = app.get('fetchSlogans')()
 
   if before then sloganQuery.where 'id', '<', before
 
@@ -69,7 +74,7 @@ app.get '/', (req, res) ->
 
 app.get '/current', (req, res) ->
 
-  fetchSlogans()
+  app.get('fetchSlogans')()
   .limit 1
   .then (returnedSlogans) ->
     res.json
@@ -85,12 +90,13 @@ app.post '/', limit(), (req, res) ->
   unless newSlogan.user and newSlogan.slogan
     res.sendError 422, 'bad input'
 
-  newSlogan.created_at = knex.raw('current_timestamp')
+  if newSlogan.slogan.length < 10
+    return res.sendError 422, 'ur slogan is t00 $h0rt!'
 
-  knex.insert(newSlogan).into('slogans')
+  app.get('insertSlogan') newSlogan
   .then (result) ->
     unless result[0] then return RSVP.reject()
-    fetchSlogans()
+    app.get('fetchSlogans')()
     .where('id', result[0])
 
   .then (returnedSlogans) ->
@@ -103,16 +109,16 @@ app.post '/', limit(), (req, res) ->
     res.sendError 500, 'database error'
 
 
-# example
+# example page to show it off
 
 app.get '/example', (req, res) ->
   res.render 'example'
 
 
-# static files
 
 RSVP.resolve().then ->
-  
+
+  # build static files
   if process.env.NODE_ENV == 'production'
     RSVP.resolve './dist'
   else
@@ -120,11 +126,13 @@ RSVP.resolve().then ->
     build Brocfile
 
 .then (buildDirectory) ->
-  # scripts and stuff
+
+  # route static files
   app.use express.static(buildDirectory)
 
-  # start server
+.then ->
 
+  # start server
   app.listen port, ->
     console.log "listening on port #{port}"
 
