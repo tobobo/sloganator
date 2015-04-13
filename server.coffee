@@ -3,7 +3,7 @@ bodyParser = require 'body-parser'
 compression = require 'compression'
 RSVP = require 'rsvp'
 path = require 'path'
-build = require './build'
+build = require './utils/build'
 app = express()
 port = 8000
 
@@ -25,7 +25,7 @@ app.use compression()
 
 # helper for getting slogans from db
 
-getSlogans = ->
+fetchSlogans = ->
 
   knex.select 'id', 'slogan', 'user', 'created_at'
   .from 'slogans'
@@ -53,7 +53,7 @@ app.set 'view engine', 'jade'
 app.get '/', (req, res) ->
 
   before = req.query.before
-  sloganQuery = getSlogans()
+  sloganQuery = fetchSlogans()
 
   if before then sloganQuery.where 'id', '<', before
 
@@ -68,7 +68,7 @@ app.get '/', (req, res) ->
 
 app.get '/current', (req, res) ->
 
-  getSlogans()
+  fetchSlogans()
   .limit 1
   .then (returnedSlogans) ->
     res.json
@@ -89,7 +89,7 @@ app.post '/', (req, res) ->
   knex.insert(newSlogan).into('slogans')
   .then (result) ->
     unless result[0] then return RSVP.reject()
-    getSlogans()
+    fetchSlogans()
     .where('id', result[0])
 
   .then (returnedSlogans) ->

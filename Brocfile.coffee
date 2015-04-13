@@ -5,6 +5,9 @@ concat = require 'broccoli-concat'
 browserify = require 'broccoli-browserify'
 uglifyJS = require 'broccoli-uglify-js'
 
+
+# get dependencies
+
 nanoajax = funnel 'node_modules/nanoajax',
   srcDir: '/'
   files: ['nanoajax.min.js']
@@ -15,33 +18,41 @@ domtastic = funnel 'node_modules/domtastic',
   files: ['domtastic.min.js']
   destDir: '/'
 
-vendor = mergeTrees [nanoajax, domtastic]
+vendorScripts = mergeTrees [nanoajax, domtastic]
 
-client = funnel 'client',
+
+# get client scripts
+
+clientScripts = funnel 'client',
   srcDir: '/'
   include: ['*.coffee']
   destDir: '/'
 
-client = filterCoffeescript client
+clientScripts = filterCoffeescript clientScripts
 
-sloganator = browserify client,
+
+sloganator = browserify clientScripts,
   entries: ['./index']
   outputFile: './client.js'
 
-history = browserify client,
+sloganator = mergeTrees [sloganator, vendorScripts]
+
+sloganator = concat sloganator,
+inputFiles: ['nanoajax.min.js', 'domtastic.min.js', 'client.js']
+outputFile: '/sloganator.js'
+
+
+history = browserify clientScripts,
   entries: ['./history']
   outputFile: './history.js'
 
-sloganator = mergeTrees [sloganator, vendor]
-
-sloganator = concat sloganator,
-  inputFiles: ['nanoajax.min.js', 'domtastic.min.js', 'client.js']
-  outputFile: '/sloganator.js'
 
 merged = mergeTrees [sloganator, history]
+
 
 if process.env.NODE_ENV == 'production'
   merged = uglifyJS merged,
     mangle: true
+
 
 module.exports = merged
