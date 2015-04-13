@@ -1,5 +1,6 @@
 filterCoffeescript = require 'broccoli-coffee'
 funnel = require 'broccoli-funnel'
+replace = require 'broccoli-string-replace'
 mergeTrees = require 'broccoli-merge-trees'
 concat = require 'broccoli-concat'
 browserify = require 'broccoli-browserify'
@@ -18,7 +19,15 @@ vendorScripts = mergeTrees [nanoajax, domtastic]
 
 # get client scripts
 
+clientConfig = JSON.stringify require('./config')().client
+
 clientScripts = funnel 'client', include: ['*.coffee']
+
+clientScripts = replace clientScripts,
+  files: ['config.coffee']
+  pattern:
+    match: '{{{SLOGANATOR_CONFIG}}}'
+    replacement: clientConfig
 
 clientScripts = filterCoffeescript clientScripts
 

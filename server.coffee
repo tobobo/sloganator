@@ -5,8 +5,10 @@ limit = require 'express-rate-limit'
 RSVP = require 'rsvp'
 path = require 'path'
 build = require './utils/build'
+cors = require './utils/cors'
 app = express()
-port = process.env.PORT or 8000
+
+config = require('./config')()
 
 # db connection
 
@@ -23,6 +25,8 @@ app.use bodyParser.json()
 
 app.use compression()
 
+app.use cors(['localhost', 'treefort54.com'])
+
 
 # helpers for db
 
@@ -34,7 +38,7 @@ app.set 'fetchSlogans', ->
 
 app.set 'insertSlogan', (newSlogan) ->
   newSlogan.created_at = knex.raw('current_timestamp')
-  knex.insert(newSlogan).into('slogans')
+  knex.insert(newSlogan).into('slogans').returning('id')
 
 
 # helper for sending errors
@@ -52,6 +56,7 @@ app.use (req, res, next) ->
 
 app.set 'view engine', 'jade'
 app.locals.pretty = true
+app.locals.config = config
 
 
 # index (past slogans)
@@ -65,7 +70,7 @@ app.get '/', (req, res) ->
 
   sloganQuery.limit 40
   .then (returnedSlogans) ->
-    res.render 'index',
+    res.render 'history',
       title: 'Sloganator History'
       slogans: returnedSlogans
 
@@ -90,8 +95,11 @@ app.post '/', limit(), (req, res) ->
   unless newSlogan.user and newSlogan.slogan
     res.sendError 422, 'bad input'
 
-  if newSlogan.slogan.length < 10
+  if newSlogan.slogan.length < config.minSloganLength
     return res.sendError 422, 'ur slogan is t00 $h0rt!'
+
+  if newSlogan.slogan.length > config.maxSloganLength
+    return res.sendError 422, 'I\'m not reading that long bullshit'
 
   app.get('insertSlogan') newSlogan
   .then (result) ->
@@ -133,8 +141,8 @@ RSVP.resolve().then ->
 .then ->
 
   # start server
-  app.listen port, ->
-    console.log "listening on port #{port}"
+  app.listen config.port, ->
+    console.log "listening on port #{config.port}"
 
 .catch (error) ->
   console.log 'error building client files', error
