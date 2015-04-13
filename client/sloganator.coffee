@@ -18,31 +18,6 @@ sloganator =
     @bindEvents()
 
 
-  fetchSlogan: (cb) ->
-    nanoajax.ajax @baseURL + '/current', cb
-
-
-  getInputValue: ->
-    @input.val()
-
-
-  postSlogan: (sloganData, cb) ->
-    nanoajax.ajax
-      url: @baseURL + '/'
-      method: 'POST'
-      body: "slogan[slogan]=#{sloganData.slogan}&slogan[user]=#{sloganData.user}"
-    , (statusCode, responseJson) ->
-      if statusCode != 200
-        response = utils.tryParse responseJson
-        alert(response?.error or 'unknown error')
-      cb statusCode, text
-
-
-  getSloganData: ->
-    slogan: @getInputValue()
-    user: $('span.welcome strong a:first-child').html()
-
-
   insertElements: ->
     utils.hide @input
     utils.hide @cancel
@@ -60,6 +35,52 @@ sloganator =
       response = utils.tryParse responseJSON
       @updateSlogan response.slogan
 
+
+  bindEvents: ->
+    @slogan.on 'click', =>
+      @showInput()
+
+    @input.on 'keydown', (e) =>
+      if e.keyCode == 27 then return @cancelInput()
+      unless e.keyCode == 13 then return
+      @saveSlogan()
+
+    @input.on 'focus', =>
+      @input[0].select()
+
+    @container.on 'mouseover', =>
+      utils.show @history
+
+    @container.on 'mouseout', =>
+      utils.hide @history
+
+    @cancel.on 'click', =>
+      @cancelInput()
+
+
+  fetchSlogan: (cb) ->
+    nanoajax.ajax @baseURL + '/current', cb
+
+
+  postSlogan: (sloganData, cb) ->
+    nanoajax.ajax
+      url: @baseURL + '/'
+      method: 'POST'
+      body: "slogan[slogan]=#{sloganData.slogan}&slogan[user]=#{sloganData.user}"
+    , (statusCode, responseJson) ->
+      if statusCode != 200
+        response = utils.tryParse responseJson
+        alert(response?.error or 'unknown error')
+      cb statusCode, text
+
+
+  getInputValue: ->
+    @input.val()
+
+
+  getSloganData: ->
+    slogan: @getInputValue()
+    user: $('span.welcome strong a:first-child').html()
 
   saveSlogan: (cb) ->
     sloganData = @getSloganData()
@@ -97,26 +118,5 @@ sloganator =
     @input.val @slogan.html()
     @showSlogan()
 
-
-  bindEvents: ->
-    @slogan.on 'click', =>
-      @showInput()
-
-    @input.on 'keydown', (e) =>
-      if e.keyCode == 27 then return @cancelInput()
-      unless e.keyCode == 13 then return
-      @saveSlogan()
-
-    @input.on 'focus', =>
-      @input[0].select()
-
-    @container.on 'mouseover', =>
-      utils.show @history
-
-    @container.on 'mouseout', =>
-      utils.hide @history
-
-    @cancel.on 'click', =>
-      @cancelInput()
 
 sloganator.init()

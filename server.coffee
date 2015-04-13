@@ -1,11 +1,12 @@
 express = require 'express'
 bodyParser = require 'body-parser'
 compression = require 'compression'
+limit = require 'express-rate-limit'
 RSVP = require 'rsvp'
 path = require 'path'
 build = require './utils/build'
 app = express()
-port = 8000
+port = process.env.PORT or 8000
 
 # db connection
 
@@ -77,7 +78,7 @@ app.get '/current', (req, res) ->
 
 # create slogan
 
-app.post '/', (req, res) ->
+app.post '/', limit(), (req, res) ->
 
   newSlogan = req.body.slogan
 
@@ -111,11 +112,13 @@ app.get '/example', (req, res) ->
 # static files
 
 RSVP.resolve().then ->
+  
   if process.env.NODE_ENV == 'production'
     RSVP.resolve './dist'
   else
     Brocfile = require './Brocfile.coffee'
     build Brocfile
+
 .then (buildDirectory) ->
   # scripts and stuff
   app.use express.static(buildDirectory)
