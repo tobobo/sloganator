@@ -105,7 +105,7 @@ app.post '/', (req, res) ->
 # example
 
 app.get '/example', (req, res) ->
-  res.sendFile path.join __dirname, 'example.html'
+  res.render 'example'
 
 
 # static files
@@ -117,6 +117,7 @@ RSVP.resolve().then ->
     Brocfile = require './Brocfile.coffee'
     build Brocfile
 .then (buildDirectory) ->
+  # scripts and stuff
   app.use express.static(buildDirectory)
 
   # start server

@@ -3,36 +3,28 @@ funnel = require 'broccoli-funnel'
 mergeTrees = require 'broccoli-merge-trees'
 concat = require 'broccoli-concat'
 browserify = require 'broccoli-browserify'
+inline = require './utils/broccoli-inline-assets'
 uglifyJS = require 'broccoli-uglify-js'
 
 
 # get dependencies
 
-nanoajax = funnel 'node_modules/nanoajax',
-  srcDir: '/'
-  files: ['nanoajax.min.js']
-  destDir: '/'
+nanoajax = funnel 'node_modules/nanoajax', include: ['nanoajax.min.js']
 
-domtastic = funnel 'node_modules/domtastic',
-  srcDir: '/'
-  files: ['domtastic.min.js']
-  destDir: '/'
+domtastic = funnel 'node_modules/domtastic', include: ['domtastic.min.js']
 
 vendorScripts = mergeTrees [nanoajax, domtastic]
 
 
 # get client scripts
 
-clientScripts = funnel 'client',
-  srcDir: '/'
-  include: ['*.coffee']
-  destDir: '/'
+clientScripts = funnel 'client', include: ['*.coffee']
 
 clientScripts = filterCoffeescript clientScripts
 
 
 sloganator = browserify clientScripts,
-  entries: ['./index']
+  entries: ['./sloganator']
   outputFile: './client.js'
 
 sloganator = mergeTrees [sloganator, vendorScripts]
@@ -47,7 +39,12 @@ history = browserify clientScripts,
   outputFile: './history.js'
 
 
-merged = mergeTrees [sloganator, history]
+example = browserify clientScripts,
+  entries: ['./example']
+  outputFile: './example.js'
+
+
+merged = mergeTrees [sloganator, history, example]
 
 
 if process.env.NODE_ENV == 'production'
