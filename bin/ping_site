@@ -1,0 +1,11 @@
+#!/usr/bin/env coffee
+
+request = require 'request'
+config = require('../config')()
+url = 'http://' + config.url
+
+request.get url, (error, response, body) ->
+  if error
+    console.log "error pinging #{url}"
+  else
+    console.log "ping to #{url} successful"
