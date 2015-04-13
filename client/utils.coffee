@@ -1,4 +1,5 @@
 module.exports =
+
   hide: (els) ->
     els.forEach (el) -> $(el).css 'display', 'none'
 
@@ -9,6 +10,7 @@ module.exports =
 
   focus: (els) ->
     els.forEach (el) -> el.focus()
+
 
   tryParse: (text) ->
     result = null
