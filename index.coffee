@@ -1,6 +1,8 @@
 express = require 'express'
 bodyParser = require 'body-parser'
+compression = require 'compression'
 RSVP = require 'rsvp'
+build = require './build'
 app = express()
 port = 8000
 
@@ -16,6 +18,8 @@ app.use bodyParser.urlencoded
   extended: true
 
 app.use bodyParser.json()
+
+app.use compression()
 
 
 # helper for getting slogans from db
@@ -88,6 +92,18 @@ app.post '/', (req, res) ->
   .catch (error) ->
     console.log 'error', error
     res.sendError 500, 'database error'
+
+
+# static files
+
+RSVP.resolve().then ->
+  if process.env.NODE_ENV == 'production'
+    RSVP.resolve './dist'
+  else
+    Brocfile = require './Brocfile.coffee'
+    build Brocfile
+.then (buildDirectory) ->
+  app.use express.static(buildDirectory)
 
 
 # start server
