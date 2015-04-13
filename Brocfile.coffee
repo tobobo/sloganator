@@ -2,6 +2,7 @@ filterCoffeescript = require 'broccoli-coffee'
 funnel = require 'broccoli-funnel'
 mergeTrees = require 'broccoli-merge-trees'
 concat = require 'broccoli-concat'
+browserify = require 'broccoli-browserify'
 uglifyJS = require 'broccoli-uglify-js'
 
 nanoajax = funnel 'node_modules/nanoajax',
@@ -16,12 +17,16 @@ domtastic = funnel 'node_modules/domtastic',
 
 vendor = mergeTrees [nanoajax, domtastic]
 
-client = funnel '.',
+client = funnel 'client',
   srcDir: '/'
-  files: ['client.coffee']
+  include: ['*.coffee']
   destDir: '/'
 
 client = filterCoffeescript client
+
+client = browserify client,
+  entries: ['./index']
+  outputFile: './client.js'
 
 merged = mergeTrees [client, vendor]
 

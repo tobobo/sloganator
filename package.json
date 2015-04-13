@@ -31,6 +31,7 @@
     "compression": "~1.4.3",
     "grunt": "~0.4.5",
     "grunt-cli": "~0.1.13",
-    "grunt-exec": "~0.4.6"
+    "grunt-exec": "~0.4.6",
+    "broccoli-browserify": "~0.1.0"
   }
 }
