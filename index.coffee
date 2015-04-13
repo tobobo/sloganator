@@ -105,8 +105,10 @@ RSVP.resolve().then ->
 .then (buildDirectory) ->
   app.use express.static(buildDirectory)
 
+  # start server
 
-# start server
+  app.listen port, ->
+    console.log "listening on port #{port}"
 
-app.listen port, ->
-  console.log "listening on port #{port}"
+.catch (error) ->
+  console.log 'error building client files', error

@@ -14,6 +14,8 @@ domtastic = funnel 'node_modules/domtastic',
   files: ['domtastic.min.js']
   destDir: '/'
 
+vendor = mergeTrees [nanoajax, domtastic]
+
 client = funnel '.',
   srcDir: '/'
   files: ['client.coffee']
