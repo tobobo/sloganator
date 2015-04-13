@@ -4,11 +4,13 @@ RSVP = require 'rsvp'
 app = express()
 port = 8000
 
+# db connection
 
 dbConfig = require('./knexfile')[process.env.NODE_ENV or 'development']
-
 knex = require('knex') dbConfig
 
+
+# middleware
 
 app.use bodyParser.urlencoded
   extended: true
@@ -16,12 +18,16 @@ app.use bodyParser.urlencoded
 app.use bodyParser.json()
 
 
+# helper for getting slogans from db
+
 getSlogans = ->
 
   knex.select 'slogan', 'user', 'created_at'
   .from 'slogans'
   .orderBy 'created_at', 'desc'
 
+
+# helper for sending errors
 
 app.use (req, res, next) ->
 
@@ -32,19 +38,40 @@ app.use (req, res, next) ->
   next()
 
 
+# index (past slogans)
+
 app.get '/', (req, res) ->
+
+  before = req.query.before
+  sloganQuery = getSlogans()
+
+  if before then sloganQuery.where 'id', '<', before
+
+  sloganQuery.limit 40
+  .then (returnedSlogans) ->
+    res.json
+      slogans: returnedSlogans
+
+
+# current slogan
+
+app.get '/current', (req, res) ->
 
   getSlogans()
   .limit 1
-  .then (response) ->
+  .then (returnedSlogans) ->
     res.json
-      slogan: response[0]
+      slogan: returnedSlogans[0]
 
+# create slogan
 
 app.post '/', (req, res) ->
 
   newSlogan = req.body.slogan
-  unless newSlogan.user and newSlogan.slogan then res.sendError 422, 'bad input'
+
+  unless newSlogan.user and newSlogan.slogan
+    res.sendError 422, 'bad input'
+
   newSlogan.created_at = knex.raw('current_timestamp')
 
   knex.insert(newSlogan).into('slogans')
@@ -53,24 +80,17 @@ app.post '/', (req, res) ->
     getSlogans()
     .where('id', result[0])
 
-  .then (slogans) ->
-    unless slogans[0] then return RSVP.reject()
+  .then (returnedSlogans) ->
+    unless returnedSlogans[0] then return RSVP.reject()
     res.json
-      slogan: slogans[0]
+      slogan: returnedSlogans[0]
 
   .catch (error) ->
     console.log 'error', error
     res.sendError 500, 'database error'
 
 
-app.get '/past', (req, res) ->
-
-  getSlogans()
-  .limit 40
-  .then (response) ->
-    res.json
-      slogans: response
-
+# start server
 
 app.listen port, ->
   console.log "listening on port #{port}"
