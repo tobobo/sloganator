@@ -2,6 +2,7 @@ express = require 'express'
 bodyParser = require 'body-parser'
 compression = require 'compression'
 RSVP = require 'rsvp'
+path = require 'path'
 build = require './build'
 app = express()
 port = 8000
@@ -92,6 +93,12 @@ app.post '/', (req, res) ->
   .catch (error) ->
     console.log 'error', error
     res.sendError 500, 'database error'
+
+
+# example
+
+app.get '/example', (req, res) ->
+  res.sendFile path.join __dirname, 'example.html'
 
 
 # static files
