@@ -8,7 +8,7 @@ html
     ul.slogans
       each slogan in slogans
         li.slogan(data-slogan-id=slogan.id)
-          span #{slogan.slogan} -
+          span #{!=slogan.slogan} -
           strong  #{slogan.user}
           span  at
           span  #{slogan.created_at}
