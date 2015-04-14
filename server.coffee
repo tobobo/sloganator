@@ -4,6 +4,7 @@ compression = require 'compression'
 limit = require 'express-rate-limit'
 RSVP = require 'rsvp'
 path = require 'path'
+sanitizeHTML = require 'sanitize-html'
 build = require './utils/build'
 cors = require './utils/cors'
 app = express()
@@ -94,6 +95,10 @@ app.post '/', limit(), (req, res) ->
 
   unless newSlogan.user and newSlogan.slogan
     res.sendError 422, 'bad input'
+
+  newSlogan.slogan = sanitizeHTML newSlogan.slogan,
+    allowedTags: ['strong', 'em']
+    allowedAttributes: {}
 
   if newSlogan.slogan.length < config.minSloganLength
     return res.sendError 422, 'ur slogan is t00 $h0rt!'
