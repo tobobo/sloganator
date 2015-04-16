@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.coffee",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node_modules/.bin/jasmine-node spec --coffee",
     "postinstall": "node_modules/.bin/knex migrate:latest; node_modules/.bin/grunt exec:buildIfProduction"
   },
   "author": "",
@@ -39,7 +39,13 @@
     "pg": "~4.3.0",
     "request": "~2.55.0",
     "rsvp": "~3.0.18",
-    "sanitize-html": "^1.6.1",
+    "sanitize-html": "~1.6.1",
     "sqlite3": "~3.0.5"
+  },
+  "devDependencies": {
+    "proxyquire": "~1.4.0",
+    "supertest": "~0.15.0",
+    "jasmine": "~2.2.1",
+    "jasmine-node": "~1.14.5"
   }
 }
